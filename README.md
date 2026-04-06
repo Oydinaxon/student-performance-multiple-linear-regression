@@ -13,7 +13,7 @@ The target variable is:
 ## Repository structure
 
 - `data.csv` — sample dataset
-- `regression_model.py` — main Python script
+- `student-performance-multiple-linear-regression.py` — main Python script
 - `requirements.txt` — required libraries
 - `real_vs_predicted.png` — generated figure
 - `coefficients_bar_chart.png` — generated figure
