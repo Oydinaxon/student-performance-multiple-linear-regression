@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 from mpl_toolkits.mplot3d import Axes3D
+import statsmodels.api as sm
 
 # ======================
 # 1. DATASET
@@ -30,7 +31,7 @@ print("Datasetning dastlabki 5 qatori:")
 print(df.head())
 
 # ======================
-# 2. MODEL
+# 2. MODEL (sklearn)
 # ======================
 X = df[["study_hours", "attendance", "homework"]]
 y = df["grade"]
@@ -55,17 +56,51 @@ print("x2 = attendance")
 print("x3 = homework")
 
 # ======================
-# 4. MODEL BAHOLASH
+# 4. MODEL BAHOLASH (sklearn)
 # ======================
 r2 = r2_score(y, y_pred)
 mse = mean_squared_error(y, y_pred)
+rmse = np.sqrt(mse)
 
-print("\nModel sifati:")
+print("\nModel sifati (sklearn):")
 print(f"R2 = {r2:.4f}")
 print(f"MSE = {mse:.4f}")
+print(f"RMSE = {rmse:.4f}")
 
 # ======================
-# 5. REAL VS PREDICTED
+# 5. STATISTIK TAHLIL (statsmodels)
+# ======================
+X_sm = sm.add_constant(X)   # const qo'shish
+ols_model = sm.OLS(y, X_sm).fit()
+
+print("\nOLS Regression Results:")
+print(ols_model.summary())
+
+# ======================
+# 6. JADVAL KO'RINISHIDA NATIJALAR
+# ======================
+results_table = pd.DataFrame({
+    "O‘zgaruvchi": ols_model.params.index,
+    "Koeffitsiyent": ols_model.params.values,
+    "Std. xatolik": ols_model.bse.values,
+    "t-statistika": ols_model.tvalues.values,
+    "p-value": ols_model.pvalues.values
+})
+
+print("\nRegressiya natijalari jadvali:")
+print(results_table.round(4))
+
+print("\nModelning umumiy statistik ko'rsatkichlari:")
+print(f"R-squared: {ols_model.rsquared:.4f}")
+print(f"Adjusted R-squared: {ols_model.rsquared_adj:.4f}")
+print(f"F-statistic: {ols_model.fvalue:.4f}")
+print(f"Prob (F-statistic): {ols_model.f_pvalue:.6f}")
+
+# Jadvalni csv ga saqlash
+results_table.to_csv("regression_results_table.csv", index=False)
+
+# ======================
+# 7. REAL VS PREDICTED
 # ======================
 plt.figure(figsize=(8, 6))
 plt.scatter(y, y_pred)
@@ -76,20 +111,20 @@ plt.grid(True)
 plt.show()
 
 # ======================
-# 6. KOEFFITSIENTLAR GRAFIKI
+# 8. KOEFFITSIENTLAR GRAFIKI
 # ======================
 features = ["Study Hours", "Attendance", "Homework"]
 
 plt.figure(figsize=(8, 6))
 plt.bar(features, model.coef_)
 plt.xlabel("Omillar")
-plt.ylabel("Koeffitsient qiymati")
+plt.ylabel("Koeffitsiyent qiymati")
 plt.title("Omillarning regressiya modelidagi ta’siri")
 plt.grid(True)
 plt.show()
 
 # ======================
-# 7. 3D REGRESSIYA TEKISLIGI
+# 9. 3D REGRESSIYA TEKISLIGI
 # ======================
 fig = plt.figure(figsize=(10, 7))
 ax = fig.add_subplot(111, projection='3d')
@@ -116,4 +151,18 @@ ax.set_ylabel("Qatnashish")
 ax.set_zlabel("Baho")
 ax.set_title("Ko‘p omilli regressiya tekisligi")
 
+plt.show()
+
+# ======================
+# 10. QOLDIQLAR TAHLILI (bonus)
+# ======================
+residuals = y - y_pred
+
+plt.figure(figsize=(8, 6))
+plt.scatter(y_pred, residuals)
+plt.axhline(y=0, linestyle='--')
+plt.xlabel("Prognoz qilingan qiymatlar")
+plt.ylabel("Qoldiqlar")
+plt.title("Qoldiqlar tahlili")
+plt.grid(True)
 plt.show()
